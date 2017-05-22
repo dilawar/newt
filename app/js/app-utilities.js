@@ -4,6 +4,8 @@
  * You can directly utilize this object also you can use this object to set a variable in a file and access it in another file.
  */
 var jquery = $ = require('jquery');
+var datalib = require('datalib');
+var chroma = require('chroma-js');
 
 var appUtilities = {};
 
@@ -813,6 +815,164 @@ appUtilities.getColorsFromElements = function (nodes, edges) {
     }
   }
   return colorHash;
+};
+
+// read and parse the data file
+appUtilities.loadDataFile = function (file) {
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var text = this.result;
+    var data = datalib.read(text, {type: 'csv'});
+    appUtilities.addDataToMap(data);
+  };
+
+  reader.readAsText(file);
 }
+
+// match elements and add the data to them
+appUtilities.addDataToMap = function (data) {
+  var columnHeaders = Object.keys(data[0]); // get the provided headers
+  var dataHeaders = [];
+  // we want to remove the name/id/label column fro the header list
+  for(var i=0; i < columnHeaders.length; i++) {
+    if(columnHeaders[i] == 'name') {
+      continue;
+    }
+    dataHeaders.push(columnHeaders[i]);
+  }
+
+  for(var i=0; i < data.length; i++) {
+    var dataRow = data[i];
+    var id = dataRow.name;
+    // maybe several elements match the name/id, annotate all of them
+    cy.elements('[label="'+id+'"]').forEach(function(ele){
+      var annotData = {};
+      for(var j=0; j<dataHeaders.length; j++) {
+        var dataColumnName = dataHeaders[j];
+        annotData[dataColumnName] = dataRow[dataColumnName];
+      }
+      appUtilities.addAnnotationToElement(ele, annotData);
+    });
+  }
+  appUtilities.populateAnnotPropList();
+};
+
+// add data by creating annotation for a specific element
+appUtilities.addAnnotationToElement = function (ele, dataDict) {
+  if (!ele.data('annotations')) {
+    ele.data('annotations', {});
+  }
+  var annotations = ele.data('annotations');
+  var root = ele.data('id') + '-annot-';
+
+  for(var key in dataDict) {
+    var value = dataDict[key];
+    var annotID = root + appUtilities.getNextAnnotationId(ele, root);
+    annotations[annotID] = {
+      id: annotID,
+      cyParent: ele,
+      status: "validated",
+      selectedRelation: "sio:SIO_000223",
+      selectedDB: key,
+      annotationValue: value
+    };
+  }
+};
+
+// return the next available annotation ID with the specified prefix: root
+appUtilities.getNextAnnotationId = function (ele, root) {
+  var annotations = ele.data('annotations');
+  var annotCount = Object.keys(annotations).length;
+
+  var test_id = annotCount;
+  while(annotations[root+test_id]) { // this id already exists in annotations
+    test_id++;
+  }
+  return test_id;
+};
+
+// return a chroma color scale
+appUtilities.getColorScale = function (color1, color2, color3) {
+  var colorArray = []
+  colorArray.push(chroma(color1));
+  colorArray.push(chroma(color2));
+  if(color3) {
+    colorArray.push(chroma(color3));
+  }
+  return chroma.scale(colorArray).domain([0, 100]);
+};
+
+// update the div preview
+appUtilities.setColorScalePreview = function (c1, c2, c3) {
+  if(c3) {
+    c1 = chroma(c1);
+    c2 = chroma(c2);
+    c3 = chroma(c3);
+    $('#colorscale-preview').css('background', '-webkit-linear-gradient(left, '+c1.css()+' 0%,'+c2.css()+' 50%,'+c3.css()+' 100%)');
+  }
+  else {
+    c1 = chroma(c1);
+    c2 = chroma(c2);
+    $('#colorscale-preview').css('background', '-webkit-linear-gradient(left, '+c1.css()+' 0%,'+c2.css()+' 100%)');
+  }
+};
+
+// return the value of an annotation custom property
+appUtilities.getAnnotProperty = function (ele, property) {
+  var result = null;
+  if (ele.data('annotations')) {
+    for(var annotID in ele.data('annotations')) {
+      var annotation = ele.data('annotations')[annotID];
+      if(annotation.selectedRelation == "sio:SIO_000223" && annotation.selectedDB == property) {
+        result = annotation.annotationValue;
+        return result;
+      }
+    }
+  }
+  return result;
+};
+
+// populate the select list containing a choice of annotation property, from all properties present in all elements
+appUtilities.populateAnnotPropList = function () {
+  var propHash = {};
+  cy.elements().forEach(function(ele) {
+    if (ele.data('annotations')) {
+      for(var annotID in ele.data('annotations')) {
+        var annotation = ele.data('annotations')[annotID];
+        if(annotation.selectedRelation == "sio:SIO_000223") {
+          propHash[annotation.selectedDB] = true;
+        }
+      }
+    }
+  });
+
+  $('#dataviz-property').empty();
+  for(var prop in propHash) {
+    $('#dataviz-property').append($('<option>', { 
+        value: prop,
+        text : prop 
+    }));
+  }
+};
+
+// apply the chosen color scale to the map 
+appUtilities.applyDataViz = function (property, colorScale, excludeColor) {
+  cy.nodes().forEach(function(ele) {
+    var eleVal = appUtilities.getAnnotProperty(ele, property);
+    var result;
+    if (eleVal) {
+      result = colorScale(eleVal).css();
+      ele.data('background-color', result);
+    }
+    else {
+      //result = chroma('grey').css();
+      excludeColor = chroma('lightgray');
+      ele.data('background-color', excludeColor.css());
+      //ele.style('color', excludeColor);
+      ele.data('border-color', excludeColor.darken().css());
+    }
+    ele.data('background-opacity', 1);
+  });
+};
 
 module.exports = appUtilities;

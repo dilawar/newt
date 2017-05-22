@@ -172,6 +172,20 @@ module.exports = function () {
       }
     });
 
+    // -- data file management -- //
+    $("#load-data").click(function () {
+      $("#data-input").trigger('click');
+    });
+
+    $("#data-input").change(function () {
+      if ($(this).val() != "") {
+        var file = this.files[0];
+        appUtilities.loadDataFile(file);
+        $(this).val("");
+      }
+    });
+    // -- END data file management -- //
+
     $("#node-legend").click(function (e) {
       e.preventDefault();
       $("#node_legend_modal").modal('show');
@@ -548,6 +562,34 @@ module.exports = function () {
         // see: http://stackoverflow.com/questions/34409733/find-element-at-x-y-position-in-cytoscape-js
         cy.trigger('tapend', {x: relX, y: relY});
       }
+    });
+
+    $('#inspector-data-tab').click(function(e) {
+      appUtilities.populateAnnotPropList();
+    });
+
+    $('#gradient-color-1, #gradient-color-2, #gradient-color-3, #color-scale-count, #dataviz-property').change(_.throttle(function(e) {
+      var color1 = $('#gradient-color-1').val();
+      var color2 = $('#gradient-color-2').val();
+      var colorCount = $('#color-scale-count').val();
+      var property = $('#dataviz-property').val();
+      var colorScale;
+      if (colorCount == 2) {
+        colorScale = appUtilities.getColorScale(color1, color2);
+        appUtilities.setColorScalePreview(color1, color2);
+        $('#gradient-color-3').prop('disabled', true);
+      }
+      else if (colorCount == 3) {
+        var color3 = $('#gradient-color-3').val();
+        colorScale = appUtilities.getColorScale(color1, color2, color3);
+        $('#gradient-color-3').prop('disabled', false);
+        appUtilities.setColorScalePreview(color1, color2, color3);
+      }
+      appUtilities.applyDataViz(property, colorScale);
+    }, 500));
+
+    $('#apply-dataviz').click(function(e) {
+      $('#color-scale-count').trigger('change');
     });
   }
 };

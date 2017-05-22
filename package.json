@@ -44,7 +44,9 @@
     "lodash.get": "^4.4.2",
     "lodash.set": "^4.3.2",
     "libxmljs": "^0.18.4",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "datalib": "^1.7.3",
+    "chroma-js": "^1.3.3"
   },
   "devDependencies": {
     "express": "4.14.0",

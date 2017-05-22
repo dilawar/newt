@@ -412,7 +412,8 @@ module.exports = function () {
       // cannot be done on unselect event because it causes conflict with the select trigger
       // when nodes are selected one after another
       // after tests, seems better to do it here
-      if (cy.elements(':selected').length == 0){
+      // We don't want to auto switch when data tab is open
+      if (cy.elements(':selected').length == 0 && !$('#inspector-data-tab').hasClass('active')){
         // edge case when the properties tab is already selected (and shown empty)
         // and an element is selected, the property tab gets shown and the palette tab is concatenated after it
         // we need to wait a bit before triggering the following, and check again if everything is unselected

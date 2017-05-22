@@ -35,8 +35,10 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <input id="file-input" type="file" style="display:none" />
+                                <input id="data-input" type="file" style="display:none" />
                                 <li><a href="#" type="file" id="new-file">New</a></li>
                                 <li><a href="#" type="file" id="load-file">Load...</a></li>
+                                <li><a href="#" type="file" id="load-data">Load data file</a></li>
                                 <li class="dropdown-submenu">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                         Samples
@@ -349,10 +351,28 @@
                         <ul class="nav nav-tabs">
                             <li id='inspector-style-tab' class="chise-tab"><a data-toggle="tab" href="#sbgn-inspector-style"><img width="18px" height="18px" src="app/img/tabs/properties.svg"/>&nbsp;Properties</a></li>
                             <li id='inspector-palette-tab' class="chise-tab active"><a data-toggle="tab" href="#sbgn-inspector-palette"><img width="18px" height="18px" src="app/img/tabs/palette.svg"/>&nbsp;Palette</a></li>
+                            <li id='inspector-data-tab' class="chise-tab"><a data-toggle="tab" href="#sbgn-inspector-data">&nbsp;Data</a></li>
                         </ul>
                         <div class="tab-content">
                         <div id="sbgn-inspector-style" class="tab-pane fade">
                             <div id="sbgn-inspector-style-panel-group" class="panel-group">
+                            </div>
+                        </div>
+                        <div id="sbgn-inspector-data" class="tab-pane fade">
+                            <div id="sbgn-inspector-data-panel-group" class="panel-group">
+                                <div class="panel">
+                                    <input id='gradient-color-1' class='inspector-input-box' type='color' />
+                                    <input id='gradient-color-2' class='inspector-input-box' type='color' />
+                                    <input id='gradient-color-3' class='inspector-input-box' type='color' />
+                                    <select name="color-scale-count" id="color-scale-count">
+                                      <option value="2">2</option>
+                                      <option value="3">3</option>
+                                    </select>
+                                    <select name="dataviz-property" id="dataviz-property">
+                                    </select>
+                                    <input id="apply-dataviz" type="button" value="Apply"/>
+                                    <div id="colorscale-preview" style="width:200px;height:20px;"></div>
+                                </div>
                             </div>
                         </div>
                         <div id="sbgn-inspector-palette" class="tab-pane fade in active">
