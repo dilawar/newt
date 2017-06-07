@@ -420,6 +420,21 @@ module.exports = function () {
       //chise.saveAsSbgnml(filename);
       fileSaveView.render();
     });
+
+    $("#delete-annotations").click(function (e) {
+      cy.elements().unselect(); // ensure nothing is selected, so we don't have a view displayed and conflicting
+      cy.nodes().forEach(function(node){ // check all nodes, they may have a view instantiated
+        if(node.data('annotationsView')) {
+          var view = node.data('annotationsView');
+          while (model = view.model.first()) { // we need to remove all the attached annotations models
+            model.destroy();
+          }
+          //view.remove();
+          node.data('annotationsView', '');
+        }
+      });
+      cy.elements().data('annotations', '');
+    });
     
     $("#add-complex-for-selected").click(function (e) {
       chise.createCompoundForGivenNodes(cy.nodes(':selected'), 'complex');
